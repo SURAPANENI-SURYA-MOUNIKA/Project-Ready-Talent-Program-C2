@@ -1,0 +1,37 @@
+trigger JobPostingTrigger on Job_Posting__c (after insert, after update) {
+    // Fetch the newly created or updated Job Posting records
+    List<Job_Posting__c> jobPostings = Trigger.new;
+
+    for (Job_Posting__c job : jobPostings) {
+        // Ensure Eligibility Criteria exists
+        Eligibility__c eligibility = [SELECT CGPA_Min__c, Max_Backlogs__c, Branch__c
+                                      FROM Eligibility__c 
+                                      WHERE Id = :job.Eligibility_Criteria__c];
+
+        // Find eligible students based on CGPA, Backlogs, and Branch
+        List<Student__c> eligibleStudents = [SELECT Name__c, Email__c, CGPA__c, Backlogs__c
+                                             FROM Student__c
+                                             WHERE CGPA__c >= :eligibility.CGPA_Min__c
+                                             AND Backlogs__c <= :eligibility.Max_Backlogs__c
+                                             AND Branch__c = :eligibility.Branch__c];
+
+        // Send email to eligible students
+        if (eligibleStudents.size() > 0) {
+            for (Student__c student : eligibleStudents) {
+                // Prepare the email
+                Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
+                email.setToAddresses(new String[] { student.Email__c });
+                email.setSubject('New Job Posting: ' + job.Job_Title__c);
+                email.setPlainTextBody('Dear ' + student.Name__c + ',\n\n' + 
+                    'A new job opportunity is available that matches your profile.\n\n' +
+                    'Job Title: ' + job.Job_Title__c + '\n' +
+                    'Description: ' + job.Description__c + '\n\n' +
+                    'Please apply before the deadline: ' + job.Application_Deadline__c + '\n\n' +
+                    'Best Regards,\nPlacement Office');
+                
+                // Send the email
+                Messaging.sendEmail(new Messaging.SingleEmailMessage[] { email });
+            }
+        }
+    }
+}

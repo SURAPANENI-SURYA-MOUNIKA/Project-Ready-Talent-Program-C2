@@ -1,0 +1,9 @@
+public class JobPostingTriggerHandler {
+    
+    // Method to send email notifications after job postings are created
+    public static void afterInsert(List<Job_Posting__c> jobPostings) {
+        for (Job_Posting__c job : jobPostings) {
+            JobPostingService.sendJobPostEmailNotification(job);
+        }
+    }   
+}

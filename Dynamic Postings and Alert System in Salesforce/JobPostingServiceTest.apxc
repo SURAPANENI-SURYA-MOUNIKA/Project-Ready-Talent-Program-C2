@@ -1,0 +1,41 @@
+@isTest
+public class JobPostingServiceTest {
+    
+    @isTest
+    static void testGetEligibleJobPostings() {
+        // Create test data for Eligibility__c
+        Eligibility__c eligibility = new Eligibility__c(
+            CGPA_Min__c = 7.0,
+            Max_Backlogs__c = 2,
+            Branch__c = 'CSE'
+        );
+        insert eligibility;
+        
+        // Create test data for Student__c
+        Student__c student = new Student__c(
+            Name = 'John Doe',
+            CGPA__c = 8.0,
+            Backlogs__c = 1,
+            Branch__c = 'CSE'
+        );
+        insert student;
+        
+        // Create test data for Job_Posting__c
+        Job_Posting__c jobPosting = new Job_Posting__c(
+            Job_Title__c = 'Software Engineer',
+            Description__c = 'Looking for fresh graduates',
+            Eligibility_Criteria__c = eligibility.Id,
+            Application_Deadline__c = Date.today().addDays(30)
+        );
+        insert jobPosting;
+        
+        // Invoke the service method
+        Test.startTest();
+        List<Job_Posting__c> postings = JobPostingService.getEligibleJobPostings(student.Id);
+        Test.stopTest();
+        
+        // Assert results
+        System.assertEquals(1, postings.size(), 'Expected one job posting');
+        System.assertEquals('Software Engineer', postings[0].Job_Title__c);
+    }
+}

@@ -1,0 +1,32 @@
+public class JobPostingService {
+    
+    // Method to send email notification
+    public static void sendJobPostEmailNotification(Job_Posting__c jobPosting) {
+        
+        // Create the list of recipients
+        List<String> toAddresses = new List<String>();
+        // You can dynamically fetch emails from Student or TPO records if needed
+        toAddresses.add('studentemail@example.com'); // Sample email, replace with actual
+        
+        // Create the email
+        Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+        mail.setToAddresses(toAddresses);
+        mail.setReplyTo('tpo@example.com'); // Sender's email
+        mail.setSenderDisplayName('TPO Office');
+        
+        // Subject
+        mail.setSubject('New Job Posting: ' + jobPosting.Job_Title__c);
+        
+        // Body (plain text example, can be HTML formatted as well)
+        String body = 'Dear Student,\n\nA new job posting has been made:\n' +
+                      'Job Title: ' + jobPosting.Job_Title__c + '\n' +
+                      'Description: ' + jobPosting.Description__c + '\n' +
+                      'Application Deadline: ' + jobPosting.Application_Deadline__c + '\n\n' +
+                      'Please login to the student dashboard for more details.';
+        
+        mail.setPlainTextBody(body); // or mail.setHtmlBody() if HTML content
+        
+        // Send the email
+        Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
+    }
+}
